@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/client.dir/main.c.o CMakeFiles/client.dir/smtp.c.o CMakeFiles/client.dir/str_helper.c.o CMakeFiles/client.dir/network_helper.c.o  -o client -lresolv -lssl -lcrypto -lresolv -lssl -lcrypto 
