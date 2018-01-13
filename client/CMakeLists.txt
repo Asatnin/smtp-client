@@ -8,4 +8,4 @@ include_directories(/usr/local/opt/openssl/include/)
 
 add_executable(client main.c smtp.h smtp.c str_helper.h str_helper.c network_helper.h network_helper.c)
 
-target_link_libraries (client PRIVATE -lresolv -lssl -lcrypto -lresolv)
+target_link_libraries (client PRIVATE -lresolv -lssl -lcrypto -lrt)
