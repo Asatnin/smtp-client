@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <mqueue.h>
+#include <sys/queue.h>
 
 #include "smtp.h"
 #include "network_helper.h"
 #include "files_crawler.h"
+#include "common_structs.h"
+#include "converter.h"
 
 #define LOG_QUEUE_NAME "/log-queue"
 #define QUEUE_PERMISSIONS 0660
@@ -18,11 +21,21 @@ int main() {
     char **mxhosts = getMXRecords(email);
     int i = -1;
 
+    HostnameList hostnameList;
+    LIST_INIT(&hostnameList.node);
+
+
     char *dirName = "/home/andrey/Development/smtp/client/example_maildir/";
     char **files = listFiles(dirName, 5);
     while (files[++i] != NULL) {
         char *content = processFile(dirName, files[i]);
         printf("%s\n", content);
+
+        TxtMail *mail = convertToMail(content);
+        insert_mail_to_hostname_list(mail, &hostnameList);
+
+//        LIST_INSERT_HEAD(&hostnameList.node, hostname, hostname_pointers);
+
         free(content);
         free(files[i]);
     }

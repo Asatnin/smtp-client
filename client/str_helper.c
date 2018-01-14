@@ -19,7 +19,7 @@ char* str_split(char* a_str, const char a_delim) {
     char *result = (char *) malloc(sizeof(char) * (strlen(a_str) - splitIndex)); // no -1 for \0-terminator
     memset(result, 0, sizeof(result));
     strncpy(result, a_str + splitIndex + 1, strlen(a_str) - splitIndex - 1);
-    result[strlen(a_str) - splitIndex] = '\0';
+    result[strlen(a_str) - splitIndex - 1] = '\0';
 
     return result;
 }
