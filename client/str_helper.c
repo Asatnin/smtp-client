@@ -13,7 +13,7 @@ char* str_split(char* a_str, const char a_delim) {
         }
     }
     if (splitIndex == 0) {
-        return NULL;
+        return a_str;
     }
 
     char *result = (char *) malloc(sizeof(char) * (strlen(a_str) - splitIndex)); // no -1 for \0-terminator

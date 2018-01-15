@@ -22,7 +22,7 @@ char** getMXRecords(char *email) {
     printf("Getting MX records: \n");
 
     l = res_query(domain, ns_c_any, ns_t_mx, nsbuf, sizeof(nsbuf));
-    free(splits);
+//    free(splits);
     if (l < 0) {
         return NULL;
     }

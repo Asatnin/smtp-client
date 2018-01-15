@@ -17,12 +17,12 @@ typedef struct TxtMail {
 } TxtMail;
 
 typedef struct Connection {
+    char *hostname;
     char *mx_hostname;
     int socket_fd;
     long timeout;
     long lat;
 } Connection;
-
 
 typedef struct TxtMailNode {
     TxtMail *txt_mail;

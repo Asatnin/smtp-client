@@ -2,6 +2,7 @@
 #include <sys/wait.h>
 #include <mqueue.h>
 #include <sys/queue.h>
+#include <time.h>
 
 #include "smtp.h"
 #include "network_helper.h"
@@ -15,15 +16,18 @@
 #define MAX_MSG_SIZE 256
 #define MSG_BUFFER_SIZE (MAX_MSG_SIZE + 10)
 
+#define MAX_SOCKET_CONN
+
 int main() {
 //    char *email = "schepych@gmail.com";
     char *email = "garedok@gmail.com";
     char **mxhosts = getMXRecords(email);
     int i = -1;
+    int max_connection = 0;
+    Connection connections[MAX_SOCKET_CONN] = { };
 
     HostnameList hostnameList;
     LIST_INIT(&hostnameList.node);
-
 
     char *dirName = "/home/andrey/Development/smtp/client/example_maildir/";
     char **files = listFiles(dirName, 5);
@@ -34,12 +38,58 @@ int main() {
         TxtMail *mail = convertToMail(content);
         insert_mail_to_hostname_list(mail, &hostnameList);
 
-//        LIST_INSERT_HEAD(&hostnameList.node, hostname, hostname_pointers);
-
         free(content);
         free(files[i]);
     }
     free(files);
+
+    // try to find existing socket connection and send mails
+    Hostname *hostname_ptr = hostnameList.node.lh_first;
+    while (hostname_ptr) {
+        if (LIST_EMPTY(&hostname_ptr->mail_list)) {
+            hostname_ptr = hostname_ptr->hostname_pointers.le_next;
+        }
+
+        int found = 0;
+        for (i = 0; i < max_connection; i++) {
+            if (strcmp(connections[i].hostname, hostname_ptr->hostname)) {
+                found = 1;
+                break;
+            }
+        }
+        // if no connection found we'll try to create one
+        if (found == 0) {
+            Connection conn;
+            memset(&conn, 0, sizeof(conn));
+
+            conn.hostname = hostname_ptr->hostname;
+            char **conn_mx_hosts = getMXRecords(conn.hostname);
+            conn.mx_hostname = conn_mx_hosts[0];
+            conn.timeout = 10000;
+
+            struct timespec spec;
+            clock_gettime(CLOCK_REALTIME, &spec);
+            conn.lat = spec.tv_sec * 1000L;
+
+            conn.socket_fd = connectToServer(conn.mx_hostname, 25);
+
+            connections[max_connection++] = conn;
+
+            i = max_connection - 1;
+
+            free(conn_mx_hosts);
+        }
+
+        // try to send all mail for found hostname
+        Connection cur_conn = connections[i];
+        TxtMailNode *mail_node = hostname_ptr->mail_list.lh_first;
+        while (mail_node) {
+            mail_node = mail_node->pointers.le_next;
+        }
+
+        hostname_ptr = hostname_ptr->hostname_pointers.le_next;
+    }
+
 
     // process id for child logging process
     pid_t processId;
