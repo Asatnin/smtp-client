@@ -1,4 +1,4 @@
-From: vasya@gmail.com
+From: petya@gmail.com
 To: schepych@gmail.com
-Subject: Smtp Client Test
+Subject: 123Smtp Client Test
 Here Is SMTP CLIENT TEST DATA TEXT

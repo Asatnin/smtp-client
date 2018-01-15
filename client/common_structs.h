@@ -34,7 +34,7 @@ typedef struct TxtMailNode {
 typedef struct Hostname {
     char *hostname;
 
-//    LIST_HEAD(txt_mail_list, TxtMailNode) mail_list;
+    LIST_HEAD(txt_mail_list, TxtMailNode) mail_list;
     LIST_ENTRY(Hostname) hostname_pointers;
 } Hostname;
 
