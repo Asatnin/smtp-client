@@ -15,21 +15,14 @@
 #include <unistd.h>
 #include <signal.h>
 
-#define SMTP_MTU 800
+#include "common_structs.h"
+
+#define SMTP_BUF_SIZE 800
 #define MAX_EMAIL_LEN 64
 #define BUF_SIZE 8196
 #define STR_LEN 32
 
-SSL_CTX* initSSLContext();
-void sslError(SSL *ssl, int received);
 int connectToServer(const char *serverUrl, const unsigned short serverPort);
-int sendMail(char *hostname,
-             const unsigned short portnum,
-             char *from,
-             char *to,
-             char *replyto,
-             char *subject,
-             char *msg,
-             char *msghtml);
+int send_mail(int server, TxtMail *mail);
 
 #endif //CLIENT_SMTP_H

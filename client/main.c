@@ -9,6 +9,7 @@
 #include "files_crawler.h"
 #include "common_structs.h"
 #include "converter.h"
+#include "logger.h"
 
 #define LOG_QUEUE_NAME "/log-queue"
 #define QUEUE_PERMISSIONS 0660
@@ -25,6 +26,42 @@ int main() {
     int i = -1;
     int max_connection = 0;
     Connection connections[MAX_SOCKET_CONN] = { };
+
+    TxtMail mail = {0};
+    mail.from = "schepych@gmail.com";
+    mail.to = "aazavalin@yandex.ru";
+    mail.subject = "Тестовая отпрвака письма";
+    mail.data = "Тестовая отпрвака письма";
+
+    int server = connectToServer("mx.yandex.ru", 25);
+    send_mail(server, &mail);
+
+    return 0;
+
+    mqd_t logger;
+    char logger_name[30];
+    strcpy(logger_name, LOG_NAME);
+
+
+    // process id for child logging process
+    pid_t processId;
+    processId = fork();
+
+    if (processId == 0) {
+        logger = mq_open(logger_name, O_RDONLY);
+        logger_init(logger, logger_name);
+        return 0;
+    } else {
+        struct mq_attr attr;
+        attr.mq_flags = 0;
+        attr.mq_msgsize = LOG_SIZE;
+        attr.mq_maxmsg = MAX_MQ_SIZE;
+        attr.mq_curmsgs = 0;
+        mq_unlink(logger_name);
+        logger = mq_open(logger_name, O_CREAT | O_EXCL | O_NONBLOCK | O_WRONLY, 0777, &attr);
+    }
+
+    do_log(logger, ERROR, "Error on creating server socket, code %d", errno);
 
     HostnameList hostnameList;
     LIST_INIT(&hostnameList.node);
@@ -89,11 +126,6 @@ int main() {
 
         hostname_ptr = hostname_ptr->hostname_pointers.le_next;
     }
-
-
-    // process id for child logging process
-    pid_t processId;
-    processId = fork();
 
 
 //    if (processId == 0) {
