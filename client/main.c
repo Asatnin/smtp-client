@@ -3,6 +3,7 @@
 #include <mqueue.h>
 #include <sys/queue.h>
 #include <time.h>
+#include <poll.h>
 
 #include "smtp.h"
 #include "network_helper.h"
@@ -26,6 +27,7 @@ int main() {
     int i = -1;
     int max_connection = 0;
     Connection connections[MAX_SOCKET_CONN] = { };
+    struct pollfd fds = {0};
 
     TxtMail mail = {0};
     mail.from = "schepych@gmail.com";

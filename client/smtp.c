@@ -11,6 +11,7 @@ int connectToServer(const char *serverUrl, const unsigned short serverPort) {
     int socketFd = -1;
     struct sockaddr_in serverAddress = {0};
     struct hostent *host = NULL;
+    int opt = 1;
 
     if ((host = gethostbyname(serverUrl)) == NULL) {
         perror("error while calling gethostbyname");
@@ -26,6 +27,10 @@ int connectToServer(const char *serverUrl, const unsigned short serverPort) {
     if (socketFd < 0) {
         perror("socket creation error...\n");
         exit(-1);
+    }
+
+    if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
+        perror("cannot set socker reuseaddr...\n");
     }
 
     if (connect(socketFd, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
@@ -49,7 +54,30 @@ int parse_status(char *rcv_str) {
 }
 
 int read_sckt(int socketFd, unsigned char *readData, int readLen) {
-    return recv(socketFd, readData, readLen, 0);
+    struct pollfd fds = {0};
+    int ret, len = 0, num_fds = 1, timeout = 5;
+
+    fds.fd = socketFd;
+    fds.events = POLLIN;
+
+    while (1) {
+        ret = poll(&fds, num_fds, timeout);
+        if (ret < 0) {
+            perror("poll called with error...\n");
+        } else if (ret == 0) {
+            continue;
+        }
+
+        if (fds.revents & POLLIN) {
+            len = recv(socketFd, readData, readLen, 0);
+        }
+
+        break;
+    }
+
+    return len;
+
+//    return recv(socketFd, readData, readLen, 0);
 }
 
 

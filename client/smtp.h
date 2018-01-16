@@ -14,6 +14,7 @@
 #include <memory.h>
 #include <unistd.h>
 #include <signal.h>
+#include <poll.h>
 
 #include "common_structs.h"
 
