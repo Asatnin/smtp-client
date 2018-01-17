@@ -54,30 +54,30 @@ int parse_status(char *rcv_str) {
 }
 
 int read_sckt(int socketFd, unsigned char *readData, int readLen) {
-    struct pollfd fds = {0};
-    int ret, len = 0, num_fds = 1, timeout = 5;
+//    struct pollfd fds = {0};
+//    int ret, len = 0, num_fds = 1, timeout = 5;
+//
+//    fds.fd = socketFd;
+//    fds.events = POLLIN;
+//
+//    while (1) {
+//        ret = poll(&fds, num_fds, timeout);
+//        if (ret < 0) {
+//            perror("poll called with error...\n");
+//        } else if (ret == 0) {
+//            continue;
+//        }
+//
+//        if (fds.revents & POLLIN) {
+//            len = recv(socketFd, readData, readLen, 0);
+//        }
+//
+//        break;
+//    }
+//
+//    return len;
 
-    fds.fd = socketFd;
-    fds.events = POLLIN;
-
-    while (1) {
-        ret = poll(&fds, num_fds, timeout);
-        if (ret < 0) {
-            perror("poll called with error...\n");
-        } else if (ret == 0) {
-            continue;
-        }
-
-        if (fds.revents & POLLIN) {
-            len = recv(socketFd, readData, readLen, 0);
-        }
-
-        break;
-    }
-
-    return len;
-
-//    return recv(socketFd, readData, readLen, 0);
+    return recv(socketFd, readData, readLen, 0);
 }
 
 

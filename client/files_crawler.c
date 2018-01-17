@@ -4,6 +4,31 @@
 
 #include "files_crawler.h"
 #include <stdio.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+void mark_locked(char *file_name, char *ext) {
+    char path[MAX_PATH_LEN];
+    int path_len = snprintf(path, sizeof(path) - 1, "%s%s", file_name, ext);
+    path[path_len] = '\0';
+    int fd = open(path, O_RDWR | O_CREAT, S_IRUSR | S_IRGRP | S_IROTH);
+    close(fd);
+}
+
+int file_exists(char *file_name, char *ext) {
+    char path[MAX_PATH_LEN];
+    int path_len = snprintf(path, sizeof(path) - 1, "%s%s", file_name, ext);
+    path[path_len] = '\0';
+    struct stat buf;
+    int res = stat(path, &buf);
+    return res == 0;
+}
+
+int file_has_ext(char *file_name, char *ext) {
+    char *dot_str = strrchr(file_name, '.');
+    return dot_str && !strcmp(dot_str, ext);
+}
 
 char** listFiles(char *dirName, int maxCount) {
     DIR *d;
@@ -18,10 +43,24 @@ char** listFiles(char *dirName, int maxCount) {
     d = opendir(dirName);
     if (d) {
         while ((dir = readdir(d)) != NULL && count < maxCount) {
-            if (dir->d_type == DT_REG) {
-                files[count] = malloc(sizeof(char) * strlen(dir->d_name));
-                strcpy(files[count++], dir->d_name);
+            if (dir->d_type != DT_REG) {
+                continue;
             }
+
+            char path[MAX_PATH_LEN];
+            int path_len = snprintf(path, sizeof(path) - 1, "%s%s", dirName, dir->d_name);
+            path[path_len] = '\0';
+
+            if (file_has_ext(path, ".tmp") || file_has_ext(path, ".lck")) {
+                continue;
+            }
+
+            if (file_exists(path, ".lck")) {
+                continue;
+            }
+
+            files[count] = malloc(sizeof(char) * strlen(dir->d_name));
+            strcpy(files[count++], dir->d_name);
         }
         closedir(d);
     }
@@ -51,7 +90,8 @@ char* processFile(char *dirName, char *fileName) {
             return NULL;
         }
 
-//        remove(path);
+        mark_locked(path, ".lck");
+
         fclose(file);
     }
 
