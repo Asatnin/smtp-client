@@ -5,6 +5,8 @@
 #include <sys/queue.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <errno.h>
 #include "client.h"
 #include "common_structs.h"
 #include "files_crawler.h"
@@ -39,6 +41,42 @@ void prepare_connections(Client *client, HostnameList *list) {
     }
 }
 
+void make_connections_active(Client *client) {
+    int i;
+    struct hostent *host = NULL;
+
+    for (i = 0; i < client->conns_len; i++) {
+        struct pollfd *fd = &client->fds[client->conns[i].pollfd_number];
+        if (fd->fd == -1) {
+            fd->fd = socket(PF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+            fd->events = POLLIN; // wait to start read from
+            if (fd->fd < 0) {
+                fd->fd = -1;
+                continue;
+            }
+        }
+
+        if ((host = gethostbyname(client->conns[i].mx_hostname)) == NULL) {
+            perror("error while calling gethostbyname");
+            exit(-1);
+        }
+
+        memset(&client->conns[i].serv_addr, 0, sizeof(client->conns[i].serv_addr));
+        client->conns[i].serv_addr.sin_family = AF_INET;
+        client->conns[i].serv_addr.sin_port = htons(25);
+        client->conns[i].serv_addr.sin_addr = *((struct in_addr *)host->h_addr);
+
+        int cr = connect(fd->fd, (struct sockaddr *)&client->conns[i].serv_addr, sizeof(client->conns[i].serv_addr));
+        if (cr == 0 || (cr == -1 && errno == EINPROGRESS)) {
+            // success or waiting
+        } else {
+            // error
+            printf("err\n");
+            fd->fd = -1;
+        }
+    }
+}
+
 int read_mail_directory(char *dirName, HostnameList *hostnameList) {
     int i = -1;
     char **files = listFiles(dirName, 5);
@@ -58,6 +96,8 @@ int read_mail_directory(char *dirName, HostnameList *hostnameList) {
 }
 
 void start_work(char *dirName) {
+    int i, j;
+
     HostnameList hostnameList;
     LIST_INIT(&hostnameList.node);
 
@@ -72,6 +112,25 @@ void start_work(char *dirName) {
         }
 
         prepare_connections(&client, &hostnameList);
+        make_connections_active(&client);
+
+        int pollr = poll(client.fds, client.fds_len, POLL_TIMEOUT);
+        if (pollr > 0) {
+            // lets find socket thats ready to rumble
+            ServerConnection *go_conn;
+            for (i = 0; i < client.fds_len; i++) {
+                if (client.fds[i].revents > 0) {
+                    // wow, it's READY, find connection
+                    for (j = 0; j < client.conns_len; j++) {
+                        if (client.conns[j].pollfd_number == i) {
+                            // finally we found connection thats READY
+                            go_conn = &client.conns[j];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
         int has_next_mail = 1;
         while (has_next_mail) {

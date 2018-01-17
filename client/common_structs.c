@@ -3,10 +3,14 @@
 //
 
 #include "common_structs.h"
+#include "network_helper.h"
 
 void create_connection(ServerConnection *conn, char *hostname, int pollfd) {
     conn->hostname = hostname;
+    char **mx_records = getMXRecords(hostname);
+    conn->mx_hostname = mx_records[0];
     conn->pollfd_number = pollfd;
+    free(mx_records);
 }
 
 void insert_mail_to_hostname_list(TxtMail *mail, HostnameList *list) {

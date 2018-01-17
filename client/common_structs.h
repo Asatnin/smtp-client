@@ -51,6 +51,7 @@ typedef struct HostnameList {
 
 typedef struct ServerConnection {
     char *hostname;
+    char *mx_hostname;
 
     struct sockaddr_in serv_addr;
     int pollfd_number;

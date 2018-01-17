@@ -5,6 +5,9 @@
 #ifndef CLIENT_CLIENT_H
 #define CLIENT_CLIENT_H
 
+#define POLL_TIMEOUT 50
+
+
 void start_work(char *dirName);
 
 
