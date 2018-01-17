@@ -31,7 +31,7 @@ int main() {
     struct pollfd fds = {0};
 
     char *dirName = "/home/andrey/Development/smtp/client/example_maildir/";
-    start_work(dirName);
+    start_work(dirName, 0);
 
     TxtMail mail = {0};
     mail.from = "schepych@gmail.com";

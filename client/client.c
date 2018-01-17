@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <errno.h>
+#include <pthread.h>
 #include "client.h"
 #include "common_structs.h"
 #include "files_crawler.h"
@@ -95,7 +96,7 @@ int read_mail_directory(char *dirName, HostnameList *hostnameList) {
     return i;
 }
 
-void start_work(char *dirName) {
+void start_work(char *dirName, mqd_t logger) {
     int i, j;
 
     HostnameList hostnameList;
@@ -128,6 +129,22 @@ void start_work(char *dirName) {
                             break;
                         }
                     }
+
+                    // now find mail queue for given hostname
+                    Hostname *hostname_ptr = hostnameList.node.lh_first;
+                    while (hostname_ptr) {
+                        if (strcmp(hostname_ptr->hostname, go_conn->hostname) == 0) {
+                            break;
+                        }
+                        hostname_ptr = hostname_ptr->hostname_pointers.le_next;
+                    }
+
+                    pthread_t con_thread;
+                    ThreadHandler th;
+                    th.socket = &client.fds[i].fd;
+                    th.socket_id = i;
+                    th.logger = &logger;
+                    th.mail_list = &hostname_ptr->mail_list;
                 }
             }
         }

@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <poll.h>
+#include <mqueue.h>
 
 #include "str_helper.h"
 
@@ -68,6 +69,15 @@ typedef struct Client {
     struct pollfd fds[MAX_CONN_LEN];
     int fds_len;
 } Client;
+
+
+typedef struct {
+    int *socket;
+    mqd_t  *logger;
+    int socket_id;
+
+    LIST_HEAD(txt_mail_list, TxtMailNode) mail_list;
+} ThreadHandler;
 
 
 
