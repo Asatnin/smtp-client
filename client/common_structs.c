@@ -4,6 +4,11 @@
 
 #include "common_structs.h"
 
+void create_connection(ServerConnection *conn, char *hostname, int pollfd) {
+    conn->hostname = hostname;
+    conn->pollfd_number = pollfd;
+}
+
 void insert_mail_to_hostname_list(TxtMail *mail, HostnameList *list) {
     char *hostname = str_split(mail->to, '@');
     Hostname *hostname_ptr = list->node.lh_first;

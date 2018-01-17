@@ -11,6 +11,7 @@
 #include "common_structs.h"
 #include "converter.h"
 #include "logger.h"
+#include "client.h"
 
 #define LOG_QUEUE_NAME "/log-queue"
 #define QUEUE_PERMISSIONS 0660
@@ -28,6 +29,9 @@ int main() {
     int max_connection = 0;
     Connection connections[MAX_SOCKET_CONN] = { };
     struct pollfd fds = {0};
+
+    char *dirName = "/home/andrey/Development/smtp/client/example_maildir/";
+    start_work(dirName);
 
     TxtMail mail = {0};
     mail.from = "schepych@gmail.com";
@@ -68,7 +72,6 @@ int main() {
     HostnameList hostnameList;
     LIST_INIT(&hostnameList.node);
 
-    char *dirName = "/home/andrey/Development/smtp/client/example_maildir/";
     char **files = listFiles(dirName, 5);
     while (files[++i] != NULL) {
         char *content = processFile(dirName, files[i]);

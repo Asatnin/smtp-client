@@ -6,8 +6,13 @@
 #define CLIENT_COMMON_STRUCTS_H
 
 #include <sys/queue.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <poll.h>
 
 #include "str_helper.h"
+
+#define MAX_CONN_LEN 20
 
 typedef struct TxtMail {
     char *from;
@@ -43,6 +48,29 @@ typedef struct HostnameList {
 } HostnameList;
 
 
+
+typedef struct ServerConnection {
+    char *hostname;
+
+    struct sockaddr_in serv_addr;
+    int pollfd_number;
+
+    char *buf;
+    int buffer_len;
+} ServerConnection;
+
+
+typedef struct Client {
+    long lat;
+    ServerConnection conns[MAX_CONN_LEN];
+    int conns_len;
+    struct pollfd fds[MAX_CONN_LEN];
+    int fds_len;
+} Client;
+
+
+
 void insert_mail_to_hostname_list(TxtMail *mail, HostnameList *list);
+void create_connection(ServerConnection *conn, char *hostname, int pollfd);
 
 #endif //CLIENT_COMMON_STRUCTS_H

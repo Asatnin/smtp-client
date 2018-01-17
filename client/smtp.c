@@ -29,10 +29,6 @@ int connectToServer(const char *serverUrl, const unsigned short serverPort) {
         exit(-1);
     }
 
-    if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
-        perror("cannot set socker reuseaddr...\n");
-    }
-
     if (connect(socketFd, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
         close(socketFd);
         perror("connection error...\n");
