@@ -10,7 +10,7 @@
 #define POLL_TIMEOUT 50
 
 
-void start_work(char *dirName, mqd_t logger)
+void start_work(char *dirName, mqd_t logger);
 
 
 #endif //CLIENT_CLIENT_H

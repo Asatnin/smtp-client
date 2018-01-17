@@ -76,7 +76,7 @@ typedef struct {
     mqd_t  *logger;
     int socket_id;
 
-    LIST_HEAD(txt_mail_list, TxtMailNode) mail_list;
+    Hostname *hostname_mail_list;
 } ThreadHandler;
 
 

@@ -107,10 +107,10 @@ void start_work(char *dirName, mqd_t logger) {
 
     while (1) {
         int read_files = read_mail_directory(dirName, &hostnameList);
-        if (read_files == 0) {
-            sleep(3);
-            continue;
-        }
+//        if (read_files == 0) {
+//            sleep(3);
+//            continue;
+//        }
 
         prepare_connections(&client, &hostnameList);
         make_connections_active(&client);
@@ -144,7 +144,8 @@ void start_work(char *dirName, mqd_t logger) {
                     th.socket = &client.fds[i].fd;
                     th.socket_id = i;
                     th.logger = &logger;
-                    th.mail_list = &hostname_ptr->mail_list;
+                    th.hostname_mail_list = hostname_ptr;
+                    // add function to send all mails in thread
                 }
             }
         }
