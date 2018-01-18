@@ -30,7 +30,7 @@ int main() {
     Connection connections[MAX_SOCKET_CONN] = { };
     struct pollfd fds = {0};
 
-    char *dirName = "/home/andrey/Development/smtp/client/example_maildir/";
+    char *dirName = "/home/andrey/Development/smtp/client/maildir/";
     start_work(dirName, 0);
 
     TxtMail mail = {0};

@@ -5,8 +5,9 @@ from smtpd import SMTPServer
 class EmlServer(SMTPServer):
     no = 0
     def process_message(self, peer, mailfrom, rcpttos, data):
-        filename = '%s-%d.eml' % (datetime.now().strftime('%Y%m%d%H%M%S'),
-                                  self.no)
+        # filename = '%s-%d.eml' % (datetime.now().strftime('%Y%m%d%H%M%S'),
+        #                           self.no)
+        filename = '%s.eml' % mailfrom
         f = open(filename, 'w')
         f.write(data)
         f.close
