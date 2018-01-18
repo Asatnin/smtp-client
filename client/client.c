@@ -68,7 +68,7 @@ void make_connections_active(Client *client) {
 
         memset(&client->conns[i].serv_addr, 0, sizeof(client->conns[i].serv_addr));
         client->conns[i].serv_addr.sin_family = AF_INET;
-        client->conns[i].serv_addr.sin_port = htons(25);
+        client->conns[i].serv_addr.sin_port = htons(1025);
         client->conns[i].serv_addr.sin_addr = *((struct in_addr *)host->h_addr);
 
         int cr = connect(fd->fd, (struct sockaddr *)&client->conns[i].serv_addr, sizeof(client->conns[i].serv_addr));

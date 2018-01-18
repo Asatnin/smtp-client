@@ -8,7 +8,11 @@
 void create_connection(ServerConnection *conn, char *hostname, int pollfd) {
     conn->hostname = hostname;
     char **mx_records = getMXRecords(hostname);
-    conn->mx_hostname = mx_records[0];
+    if (strcmp(hostname, "localhost") == 0) {
+        conn->mx_hostname = "localhost";
+    } else {
+        conn->mx_hostname = mx_records[0];
+    }
     conn->pollfd_number = pollfd;
     free(mx_records);
 }
