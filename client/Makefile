@@ -13,8 +13,11 @@ test_memory:
 	@valgrind --tool=memcheck --leak-check=full ./main
 
 test_system:
-	@echo "Run system tests..."
+	@echo "Prepare system tests..."
 	@echo "Run our client program"
 	./main &
 	@echo "Start local SMTP-server"
-	python -i test/server.py
+	python test/server.py &
+	@sleep 5
+	@echo "Run system tests"
+	python test/test_system.py

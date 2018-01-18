@@ -21,6 +21,9 @@ def run():
     "subject: Smtp Client Test\n"
     "Here Is SMTP CLIENT TEST DATA TEXT\n"
     )
+    file.flush()
+    os.fsync(file.fileno())
+    file.close()
     os.rename(old_file, new_file)
     expected_string = "From: <vasya@gmail.com>\n" + \
                       "To: <vasya@localhost>\n" + \
@@ -34,7 +37,7 @@ def run():
     expected_file_name = __location__ + "/vasya@gmail.com.eml"
     count = 0
     while True:
-        if count > 5:
+        if count > 15:
             sys.stderr.write("File does not exists. Mail has been sent with errors.")
             return
         if os.path.isfile(expected_file_name):
