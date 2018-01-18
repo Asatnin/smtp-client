@@ -7,7 +7,7 @@
 #ifndef CLIENT_CLIENT_H
 #define CLIENT_CLIENT_H
 
-#define POLL_TIMEOUT 50
+#define POLL_TIMEOUT 500
 
 
 void start_work(char *dirName, mqd_t logger);

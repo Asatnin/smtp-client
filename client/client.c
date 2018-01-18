@@ -76,7 +76,6 @@ void make_connections_active(Client *client) {
             // success or waiting
         } else {
             // error
-            printf("err\n");
             fd->fd = -1;
         }
     }
@@ -111,9 +110,6 @@ void start_work(char *dirName, mqd_t logger) {
 
     while (1) {
         int read_files = read_mail_directory(dirName, &hostnameList);
-        if (read_files == 0) {
-            continue;
-        }
 
         prepare_connections(&client, &hostnameList);
         make_connections_active(&client);
@@ -142,12 +138,18 @@ void start_work(char *dirName, mqd_t logger) {
                         hostname_ptr = hostname_ptr->hostname_pointers.le_next;
                     }
 
+                    if (hostname_ptr == NULL) {
+                        continue;
+                    }
+
                     pthread_t con_thread;
                     ThreadHandler th;
                     th.socket = &client.fds[i].fd;
                     th.socket_id = i;
                     th.logger = &logger;
                     th.hostname_mail_list = hostname_ptr;
+
+                    LIST_REMOVE(hostname_ptr, hostname_pointers);
 
                     if (pthread_create(&con_thread, NULL, do_send_mail, (void*) &th) < 0) {
                         printf("err when create thread\n");
