@@ -1,4 +1,4 @@
 from: vasya@gmail.com
-to: aazavalin@yandex.ru
+to: vasya@mailinator.com
 subject: Smtp Client Test
 Here Is SMTP CLIENT TEST DATA TEXT

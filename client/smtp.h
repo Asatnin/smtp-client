@@ -23,6 +23,8 @@
 #define BUF_SIZE 8196
 #define STR_LEN 32
 
+int greet_server(int socket_fd);
+int bye_server(int server);
 int connectToServer(const char *serverUrl, const unsigned short serverPort);
 int send_mail(int server, TxtMail *mail);
 

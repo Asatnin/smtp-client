@@ -50,35 +50,58 @@ int parse_status(char *rcv_str) {
 }
 
 int read_sckt(int socketFd, unsigned char *readData, int readLen) {
-//    struct pollfd fds = {0};
-//    int ret, len = 0, num_fds = 1, timeout = 5;
-//
-//    fds.fd = socketFd;
-//    fds.events = POLLIN;
-//
-//    while (1) {
-//        ret = poll(&fds, num_fds, timeout);
-//        if (ret < 0) {
-//            perror("poll called with error...\n");
-//        } else if (ret == 0) {
-//            continue;
-//        }
-//
-//        if (fds.revents & POLLIN) {
-//            len = recv(socketFd, readData, readLen, 0);
-//        }
-//
-//        break;
-//    }
-//
-//    return len;
+    struct pollfd fds = {0};
+    int ret, len = 0, num_fds = 1, timeout = 5;
 
-    return recv(socketFd, readData, readLen, 0);
+    fds.fd = socketFd;
+    fds.events = POLLIN;
+
+    while (1) {
+        ret = poll(&fds, num_fds, timeout);
+        if (ret < 0) {
+            perror("poll called with error...\n");
+        } else if (ret == 0) {
+            continue;
+        }
+
+        if (fds.revents & POLLIN) {
+            len = recv(socketFd, readData, readLen, 0);
+        }
+
+        break;
+    }
+
+    return len;
+
+//    return recv(socketFd, readData, readLen, 0);
 }
 
 
 int write_sckt(int socketFd, const unsigned char *writeData, int writeLen) {
-    return send(socketFd, writeData, writeLen, 0);
+    struct pollfd fds = {0};
+    int ret, len = 0, num_fds = 1, timeout = 5;
+
+    fds.fd = socketFd;
+    fds.events = POLLOUT;
+
+    while (1) {
+        ret = poll(&fds, num_fds, timeout);
+        if (ret < 0) {
+            perror("poll called with error...\n");
+        } else if (ret == 0) {
+            continue;
+        }
+
+        if (fds.revents & POLLOUT) {
+            len = send(socketFd, writeData, writeLen, 0);
+        }
+
+        break;
+    }
+
+    return len;
+
+//    return send(socketFd, writeData, writeLen, 0);
 }
 
 int greet_server(int socket_fd) {
@@ -153,12 +176,6 @@ int send_mail(int server, TxtMail *mail) {
     char read_data[SMTP_BUF_SIZE] = {0};
     char write_data[SMTP_BUF_SIZE] = {0};
 
-    sts = greet_server(server);
-    if (sts != 0) {
-        printf("error while greeting server\r\n");
-        return -1;
-    }
-
     // send mail from
     memset(&write_data, 0, SMTP_BUF_SIZE);
     sprintf(write_data, "MAIL FROM: <%s>\r\n", mail->from);
@@ -203,7 +220,7 @@ int send_mail(int server, TxtMail *mail) {
     read_sckt(server, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
     sts = parse_status(read_data);
-    if (sts != 354) {
+    if (sts != 354 && sts != 250) {
         printf("error while sending data\r\n");
         return -1;
     }
@@ -228,13 +245,19 @@ int send_mail(int server, TxtMail *mail) {
     read_sckt(server, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
     sts = parse_status(read_data);
-    if (sts != 250) {
+    if (sts != 250 && sts != 354) { // 354 is for shitmail.me
         printf("error while sending mail text\r\n");
         return -1;
     }
 
 
+    return 0;
+}
 
+int bye_server(int server) {
+    int sts;
+    char read_data[SMTP_BUF_SIZE] = {0};
+    char write_data[SMTP_BUF_SIZE] = {0};
 
     // send quit
     memset(&write_data, 0, SMTP_BUF_SIZE);
@@ -245,7 +268,7 @@ int send_mail(int server, TxtMail *mail) {
     read_sckt(server, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
     sts = parse_status(read_data);
-    if (sts != 221) {
+    if (sts != 221 && sts != 250) { // 250 is for shitmail.me
         printf("error while quitting\r\n");
         return 0;
     }

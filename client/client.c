@@ -8,10 +8,14 @@
 #include <netdb.h>
 #include <errno.h>
 #include <pthread.h>
+#include <mqueue.h>
 #include "client.h"
 #include "common_structs.h"
 #include "files_crawler.h"
 #include "converter.h"
+#include "smtp.h"
+
+void *do_send_mail(void *input);
 
 void prepare_connections(Client *client, HostnameList *list) {
     int i;
@@ -107,10 +111,9 @@ void start_work(char *dirName, mqd_t logger) {
 
     while (1) {
         int read_files = read_mail_directory(dirName, &hostnameList);
-//        if (read_files == 0) {
-//            sleep(3);
-//            continue;
-//        }
+        if (read_files == 0) {
+            continue;
+        }
 
         prepare_connections(&client, &hostnameList);
         make_connections_active(&client);
@@ -145,7 +148,12 @@ void start_work(char *dirName, mqd_t logger) {
                     th.socket_id = i;
                     th.logger = &logger;
                     th.hostname_mail_list = hostname_ptr;
-                    // add function to send all mails in thread
+
+                    if (pthread_create(&con_thread, NULL, do_send_mail, (void*) &th) < 0) {
+                        printf("err when create thread\n");
+                        continue;
+                    }
+                    pthread_detach(con_thread);
                 }
             }
         }
@@ -154,5 +162,35 @@ void start_work(char *dirName, mqd_t logger) {
         while (has_next_mail) {
             has_next_mail = 0;
         }
+    }
+}
+
+void *do_send_mail(void *input) {
+    ThreadHandler th = *((ThreadHandler*) input);
+    int con = *th.socket;
+    mqd_t logger = *th.logger;
+    Hostname *hostname_mail_list = th.hostname_mail_list;
+
+    // greet server first
+    int greet_res = greet_server(con);
+    if (greet_res != 0) {
+        printf("err while greet\n");
+        return NULL;
+    }
+
+    TxtMailNode *mail_node = hostname_mail_list->mail_list.lh_first;
+    while (mail_node) {
+//        send
+        int send_res = send_mail(con, mail_node->txt_mail);
+        if (send_res != 0) {
+            printf("smth bad happened\n");
+        }
+        mail_node = mail_node->pointers.le_next;
+    }
+
+    int bye_status = bye_server(con);
+    if (bye_status != 0) {
+        printf("err while quit\n");
+        return NULL;
     }
 }
