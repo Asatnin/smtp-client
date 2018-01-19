@@ -15,7 +15,10 @@
 #include "converter.h"
 #include "smtp.h"
 
+extern int is_run;
+
 void *do_send_mail(void *input);
+void do_clean_client(Client *client);
 
 void prepare_connections(Client *client, HostnameList *list) {
     int i;
@@ -108,7 +111,7 @@ void start_work(char *dirName, mqd_t logger) {
     Client client;
     memset(&client, 0, sizeof(client));
 
-    while (1) {
+    while (is_run) {
         int read_files = read_mail_directory(dirName, &hostnameList);
 
         prepare_connections(&client, &hostnameList);
@@ -159,12 +162,9 @@ void start_work(char *dirName, mqd_t logger) {
                 }
             }
         }
-
-        int has_next_mail = 1;
-        while (has_next_mail) {
-            has_next_mail = 0;
-        }
     }
+
+    do_clean_client(&client);
 }
 
 void *do_send_mail(void *input) {
@@ -194,5 +194,19 @@ void *do_send_mail(void *input) {
     if (bye_status != 0) {
         printf("err while quit\n");
         return NULL;
+    }
+}
+
+void do_clean_client(Client *client) {
+    int i;
+    for (i = 0; i < client->fds_len; i++) {
+        if (client->fds[i].fd > 0) {
+            close(client->fds[i].fd);
+        }
+    }
+
+    for (i = 0; i < client->conns_len; i++) {
+        free(client->conns[i].hostname);
+        free(client->conns[i].mx_hostname);
     }
 }

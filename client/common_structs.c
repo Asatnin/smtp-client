@@ -14,6 +14,7 @@ void create_connection(ServerConnection *conn, char *hostname, int pollfd) {
         conn->mx_hostname = mx_records[0];
     }
     conn->pollfd_number = pollfd;
+
     free(mx_records);
 }
 

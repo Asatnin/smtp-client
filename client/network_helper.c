@@ -41,10 +41,13 @@ char** getMXRecords(char *email) {
         mxhosts[i] = malloc(sizeof(char) * strlen(exchange));
         strcpy(mxhosts[i], exchange);
 
+        // no need for another host
+        break;
+
         // priority
-        printf("MX-record priority:%d\t", pri);
+//        printf("MX-record priority:%d\t", pri);
         // hostname
-        printf("hostname:%s\n", mxhosts[i]);
+//        printf("hostname:%s\n", mxhosts[i]);
     }
 
     return mxhosts;
