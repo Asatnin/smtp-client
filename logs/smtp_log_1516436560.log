@@ -1,0 +1,21 @@
+INFO: recv: 220 Andrew-PC Python SMTP proxy version 0.2
+
+
+INFO: recv: 250 Andrew-PC
+
+
+INFO: recv: 250 Ok
+
+
+INFO: recv: 250 Ok
+
+
+INFO: recv: 354 End data with <CR><LF>.<CR><LF>
+
+
+INFO: recv: 250 Ok
+
+
+INFO: recv: 221 Bye
+
+

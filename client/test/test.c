@@ -7,6 +7,8 @@
 
 #include "../str_helper.h"
 
+int is_run = 1;
+
 int init_suite() {
     return 0;
 }

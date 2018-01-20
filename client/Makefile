@@ -22,7 +22,7 @@ test_system:
 	@echo "Run our client program"
 	./main &
 	@echo "Start local SMTP-server"
-	python test/server.py &
+#	python test/server.py &
 	@sleep 5
 	@echo "Run system tests"
 	python test/test_system.py

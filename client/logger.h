@@ -19,5 +19,6 @@
 
 void do_log(mqd_t, int, const char* fmt, ...);
 void logger_init(mqd_t, char*);
+char* get_mode(int mode);
 
 #endif //CLIENT_LOGGER_H

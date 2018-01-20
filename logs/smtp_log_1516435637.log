@@ -1,0 +1,21 @@
+INFO: recv: 220 scw1 Python SMTP proxy version 0.3
+
+
+INFO: recv: 250 scw1
+
+
+INFO: recv: 250 OK
+
+
+INFO: recv: 250 OK
+
+
+INFO: recv: 354 End data with <CR><LF>.<CR><LF>
+
+
+INFO: recv: 250 OK
+
+
+INFO: recv: 221 Bye
+
+

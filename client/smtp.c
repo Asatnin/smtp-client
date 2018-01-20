@@ -3,6 +3,7 @@
 //
 
 #include "smtp.h"
+#include "logger.h"
 
 /*
  * return socket file descriptor after establishing connection to smtp server
@@ -104,7 +105,7 @@ int write_sckt(int socketFd, const unsigned char *writeData, int writeLen) {
 //    return send(socketFd, writeData, writeLen, 0);
 }
 
-int greet_server(int socket_fd) {
+int greet_server(int socket_fd, mqd_t logger) {
     int sts;
     char read_data[SMTP_BUF_SIZE] = {0};
 
@@ -112,15 +113,17 @@ int greet_server(int socket_fd) {
     memset(&read_data, 0, SMTP_BUF_SIZE);
     read_sckt(socket_fd, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
+    do_log(logger, INFO, "recv: %s\r\n", read_data);
 
     // send ehlo
-    write_sckt(socket_fd, "EHLO Here\r\n", strlen("EHLO Here\r\n"));
-//    write_sckt(socket_fd, "HELO Here\r\n", strlen("HELO Here\r\n"));
+//    write_sckt(socket_fd, "EHLO Here\r\n", strlen("EHLO Here\r\n"));
+    write_sckt(socket_fd, "HELO Here\r\n", strlen("HELO Here\r\n"));
 
     // receive response to ehlo
     memset(&read_data, 0, SMTP_BUF_SIZE);
     read_sckt(socket_fd, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
+    do_log(logger, INFO, "recv: %s\r\n", read_data);
     sts = parse_status(read_data);
     if (sts != 250) {
         printf("cannot greet server due to bad status\r\n");
@@ -172,7 +175,7 @@ int create_mail_text(unsigned char **mail, TxtMail *txt_mail) {
 }
 
 
-int send_mail(int server, TxtMail *mail) {
+int send_mail(int server, TxtMail *mail, mqd_t logger) {
     int sts;
     char read_data[SMTP_BUF_SIZE] = {0};
     char write_data[SMTP_BUF_SIZE] = {0};
@@ -187,6 +190,7 @@ int send_mail(int server, TxtMail *mail) {
     memset(&read_data, 0, SMTP_BUF_SIZE);
     read_sckt(server, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
+    do_log(logger, INFO, "recv: %s\r\n", read_data);
     sts = parse_status(read_data);
     if (sts != 250) {
         printf("error while sending mail from\r\n");
@@ -203,6 +207,7 @@ int send_mail(int server, TxtMail *mail) {
     memset(&read_data, 0, SMTP_BUF_SIZE);
     read_sckt(server, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
+    do_log(logger, INFO, "recv: %s\r\n", read_data);
     sts = parse_status(read_data);
     if (sts != 250) {
         printf("error while sending rcpt to\r\n");
@@ -220,6 +225,7 @@ int send_mail(int server, TxtMail *mail) {
     memset(&read_data, 0, SMTP_BUF_SIZE);
     read_sckt(server, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
+    do_log(logger, INFO, "recv: %s\r\n", read_data);
     sts = parse_status(read_data);
     if (sts != 354 && sts != 250) {
         printf("error while sending data\r\n");
@@ -246,6 +252,7 @@ int send_mail(int server, TxtMail *mail) {
     memset(&read_data, 0, SMTP_BUF_SIZE);
     read_sckt(server, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
+    do_log(logger, INFO, "recv: %s\r\n", read_data);
     sts = parse_status(read_data);
     if (sts != 250 && sts != 354) { // 354 is for shitmail.me
         printf("error while sending mail text\r\n");
@@ -256,7 +263,7 @@ int send_mail(int server, TxtMail *mail) {
     return 0;
 }
 
-int bye_server(int server) {
+int bye_server(int server, mqd_t logger) {
     int sts;
     char read_data[SMTP_BUF_SIZE] = {0};
     char write_data[SMTP_BUF_SIZE] = {0};
@@ -269,6 +276,7 @@ int bye_server(int server) {
     memset(&read_data, 0, SMTP_BUF_SIZE);
     read_sckt(server, read_data, SMTP_BUF_SIZE);
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
+    do_log(logger, INFO, "recv: %s\r\n", read_data);
     sts = parse_status(read_data);
     if (sts != 221 && sts != 250) { // 250 is for shitmail.me
         printf("error while quitting\r\n");

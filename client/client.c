@@ -14,6 +14,7 @@
 #include "files_crawler.h"
 #include "converter.h"
 #include "smtp.h"
+#include "logger.h"
 
 extern int is_run;
 
@@ -49,7 +50,7 @@ void prepare_connections(Client *client, HostnameList *list) {
     }
 }
 
-void make_connections_active(Client *client) {
+void make_connections_active(Client *client, mqd_t logger) {
     int i;
     struct hostent *host = NULL;
 
@@ -65,6 +66,7 @@ void make_connections_active(Client *client) {
         }
 
         if ((host = gethostbyname(client->conns[i].mx_hostname)) == NULL) {
+            do_log(logger, ERROR, "Error while getting host by name %s", client->conns[i].mx_hostname);
             perror("error while calling gethostbyname");
             exit(-1);
         }
@@ -115,7 +117,7 @@ void start_work(char *dirName, mqd_t logger) {
         int read_files = read_mail_directory(dirName, &hostnameList);
 
         prepare_connections(&client, &hostnameList);
-        make_connections_active(&client);
+        make_connections_active(&client, logger);
 
         int pollr = poll(client.fds, client.fds_len, POLL_TIMEOUT);
         if (pollr > 0) {
@@ -154,9 +156,10 @@ void start_work(char *dirName, mqd_t logger) {
 
                     Hostname* old_ptr = hostname_ptr;
                     LIST_REMOVE(hostname_ptr, hostname_pointers);
-                    free(old_ptr);
+//                    free(old_ptr);
 
                     if (pthread_create(&con_thread, NULL, do_send_mail, (void*) &th) < 0) {
+                        do_log(logger, ERROR, "Error while creating thread");
                         printf("err when create thread\n");
                         continue;
                     }
@@ -176,8 +179,9 @@ void *do_send_mail(void *input) {
     Hostname *hostname_mail_list = th.hostname_mail_list;
 
     // greet server first
-    int greet_res = greet_server(con);
+    int greet_res = greet_server(con, logger);
     if (greet_res != 0) {
+        do_log(logger, ERROR, "Error while greet");
         printf("err while greet\n");
         return NULL;
     }
@@ -186,9 +190,10 @@ void *do_send_mail(void *input) {
     TxtMailNode *old_node = NULL;
     while (mail_node) {
 //        send
-        int send_res = send_mail(con, mail_node->txt_mail);
+        int send_res = send_mail(con, mail_node->txt_mail, logger);
         if (send_res != 0) {
-            printf("smth bad happened\n");
+            do_log(logger, ERROR, "Error occured when sending mail");
+            printf("smth bad happened while email sending\n");
         }
         old_node = mail_node;
         mail_node = mail_node->pointers.le_next;
@@ -200,8 +205,9 @@ void *do_send_mail(void *input) {
         free(old_node);
     }
 
-    int bye_status = bye_server(con);
+    int bye_status = bye_server(con, logger);
     if (bye_status != 0) {
+        do_log(logger, ERROR, "Error while closing session");
         printf("err while quit\n");
         return NULL;
     }

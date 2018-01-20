@@ -19,7 +19,7 @@ class EmlServer(SMTPServer):
 
 
 def run():
-    foo = EmlServer(('localhost', 1025), None)
+    foo = EmlServer(('localhost', 25), None)
     try:
         asyncore.loop()
     except KeyboardInterrupt:
