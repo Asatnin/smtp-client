@@ -114,8 +114,8 @@ int greet_server(int socket_fd) {
     printf("[%s][%d]recv: %s\r\n", __FILE__, __LINE__, read_data);
 
     // send ehlo
-//    write_sckt(socket_fd, "EHLO Here\r\n", strlen("EHLO Here\r\n"));
-    write_sckt(socket_fd, "HELO Here\r\n", strlen("HELO Here\r\n"));
+    write_sckt(socket_fd, "EHLO Here\r\n", strlen("EHLO Here\r\n"));
+//    write_sckt(socket_fd, "HELO Here\r\n", strlen("HELO Here\r\n"));
 
     // receive response to ehlo
     memset(&read_data, 0, SMTP_BUF_SIZE);
@@ -240,6 +240,7 @@ int send_mail(int server, TxtMail *mail) {
 
     // send mail text
     write_sckt(server, data, strlen(data));
+    free(data);
 
     // receive response from mail text
     memset(&read_data, 0, SMTP_BUF_SIZE);

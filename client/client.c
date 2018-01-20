@@ -71,7 +71,7 @@ void make_connections_active(Client *client) {
 
         memset(&client->conns[i].serv_addr, 0, sizeof(client->conns[i].serv_addr));
         client->conns[i].serv_addr.sin_family = AF_INET;
-        client->conns[i].serv_addr.sin_port = htons(1025);
+        client->conns[i].serv_addr.sin_port = htons(25);
         client->conns[i].serv_addr.sin_addr = *((struct in_addr *)host->h_addr);
 
         int cr = connect(fd->fd, (struct sockaddr *)&client->conns[i].serv_addr, sizeof(client->conns[i].serv_addr));
@@ -152,7 +152,9 @@ void start_work(char *dirName, mqd_t logger) {
                     th.logger = &logger;
                     th.hostname_mail_list = hostname_ptr;
 
+                    Hostname* old_ptr = hostname_ptr;
                     LIST_REMOVE(hostname_ptr, hostname_pointers);
+                    free(old_ptr);
 
                     if (pthread_create(&con_thread, NULL, do_send_mail, (void*) &th) < 0) {
                         printf("err when create thread\n");
@@ -181,13 +183,21 @@ void *do_send_mail(void *input) {
     }
 
     TxtMailNode *mail_node = hostname_mail_list->mail_list.lh_first;
+    TxtMailNode *old_node = NULL;
     while (mail_node) {
 //        send
         int send_res = send_mail(con, mail_node->txt_mail);
         if (send_res != 0) {
             printf("smth bad happened\n");
         }
+        old_node = mail_node;
         mail_node = mail_node->pointers.le_next;
+        free(old_node->txt_mail->data);
+        free(old_node->txt_mail->subject);
+        free(old_node->txt_mail->to);
+        free(old_node->txt_mail->from);
+        free(old_node->txt_mail);
+        free(old_node);
     }
 
     int bye_status = bye_server(con);

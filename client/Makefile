@@ -15,7 +15,7 @@ clean:
 	rm -rf *.o main test/test
 
 test_memory:
-	@valgrind --tool=memcheck --leak-check=full ./main
+	@valgrind --leak-check=yes ./main
 
 test_system:
 	@echo "Prepare system tests..."

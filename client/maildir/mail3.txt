@@ -1,4 +1,4 @@
 from: vasya@gmail.com
-to: jqxqrzj@shitmail.me
+to: vasya@shitmail.me
 subject: Smtp Client Test
 Here Is SMTP CLIENT TEST DATA TEXT
